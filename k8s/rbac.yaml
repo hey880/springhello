@@ -1,0 +1,39 @@
+# <namespace>는 실제 배포할 네임스페이스로 변경하세요
+# Jenkins 파드가 이 신원으로 k8s API 서버에 요청을 보내겠다는 선언
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jenkins-deployer  # "누구인가"를 나타내는 신원(identity) 오브젝트
+  namespace: <namespace>
+
+---
+#  "이런 리소스에 대해 이런 동작을 허용한다"는 권한 목록. verbs에 delete는 없으니, 실수로 삭제하는 명령은 이 권한으로는 실행 불가.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: jenkins-deployer-role
+  namespace: <namespace>
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"] # 대상: Deployment/ReplicaSet
+    verbs: ["get", "list", "watch", "create", "update", "patch"] # 허용 동작
+  - apiGroups: [""]
+    resources: ["services", "pods"] # 대상: ServicePod
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+
+---
+# ServiceAccount(신원)와 Role(권한 목록)을 실제로 연결해주는 다리 역할. Role만 만들고 RoleBinding이 없으면 아무 효과가 없다.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: jenkins-deployer-binding
+  namespace: <namespace>
+subjects:
+  - kind: ServiceAccount
+    name: jenkins-deployer  # 누구에게
+    namespace: <namespace>
+roleRef:
+  kind: Role
+  name: jenkins-deployer-role  # 이 권한 목록을 연결할 것인지
+  apiGroup: rbac.authorization.k8s.io
