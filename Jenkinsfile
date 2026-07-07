@@ -77,10 +77,11 @@ spec:
                     sh """
                         sed "s|__IMAGE_TAG__|${IMAGE_TAG}|g" k8s/deployment.yaml > k8s/deployment-rendered.yaml
 
-                        kubectl apply -f k8s/deployment-rendered.yaml
-                        kubectl apply -f k8s/service.yaml
+                        kubectl apply -f k8s/rbac.yaml
+                        kubectl apply -f k8s/deployment-rendered.yaml -n yjlee
+                        kubectl apply -f k8s/service.yaml -n yjlee
 
-                        kubectl rollout status deployment/yeji-deployment-practice --timeout=120s
+                        kubectl rollout status deployment/yeji-deployment-practice -n yjlee --timeout=120s
                     """
                 }
             }
