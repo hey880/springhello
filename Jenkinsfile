@@ -1,6 +1,7 @@
 pipeline {
     agent {
         kubernetes {
+            namespace 'yjlee'
             yaml """
 apiVersion: v1
 kind: Pod
