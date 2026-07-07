@@ -5,7 +5,7 @@ pipeline {
 apiVersion: v1
 kind: Pod
 spec:
-  serviceAccountName: jenkins-deployer
+  serviceAccountName: jenkins
   containers:
     - name: maven
       image: maven:3.9-eclipse-temurin-21
@@ -77,7 +77,6 @@ spec:
                     sh """
                         sed "s|__IMAGE_TAG__|${IMAGE_TAG}|g" k8s/deployment.yaml > k8s/deployment-rendered.yaml
 
-                        kubectl apply -f k8s/rbac.yaml
                         kubectl apply -f k8s/deployment-rendered.yaml -n yjlee
                         kubectl apply -f k8s/service.yaml -n yjlee
 
