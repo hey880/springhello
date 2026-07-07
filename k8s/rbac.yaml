@@ -34,3 +34,31 @@ roleRef:
   kind: Role
   name: jenkins-deployer-role  # 이 권한 목록을 연결할 것인지
   apiGroup: rbac.authorization.k8s.io
+
+---
+# Jenkins 컨트롤러(jenkins 네임스페이스의 jenkins SA)가
+# yjlee 네임스페이스에 빌드용 Pod을 만들고 관리할 수 있게 하는 권한
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: jenkins-controller-pod-role
+  namespace: yjlee
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "pods/exec", "events"]
+    verbs: ["get", "list", "watch", "create", "delete", "update", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: jenkins-controller-pod-binding
+  namespace: yjlee
+subjects:
+  - kind: ServiceAccount
+    name: jenkins
+    namespace: jenkins
+roleRef:
+  kind: Role
+  name: jenkins-controller-pod-role
+  apiGroup: rbac.authorization.k8s.io
