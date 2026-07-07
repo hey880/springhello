@@ -5,7 +5,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: jenkins-deployer  # "누구인가"를 나타내는 신원(identity) 오브젝트
-  namespace: <namespace>
+  namespace: yjlee # <namespace>
 
 ---
 #  "이런 리소스에 대해 이런 동작을 허용한다"는 권한 목록. verbs에 delete는 없으니, 실수로 삭제하는 명령은 이 권한으로는 실행 불가.
@@ -13,7 +13,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: jenkins-deployer-role
-  namespace: <namespace>
+  namespace: yjlee # <namespace>
 rules:
   - apiGroups: ["apps"]
     resources: ["deployments", "replicasets"] # 대상: Deployment/ReplicaSet
@@ -28,11 +28,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: jenkins-deployer-binding
-  namespace: <namespace>
+  namespace: yjlee # <namespace>
 subjects:
   - kind: ServiceAccount
     name: jenkins-deployer  # 누구에게
-    namespace: <namespace>
+    namespace: yjlee # <namespace>
 roleRef:
   kind: Role
   name: jenkins-deployer-role  # 이 권한 목록을 연결할 것인지
