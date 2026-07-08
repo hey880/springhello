@@ -20,7 +20,7 @@ spec:
         - name: docker-config
           mountPath: /kaniko/.docker
     - name: kubectl
-      image: registry.k8s.io/kubectl:v1.29.0
+      image: alpine/k8s:1.29.15
       command: ['cat']
       tty: true
   volumes:
