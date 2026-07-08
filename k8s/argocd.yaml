@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: yjlee
+spec:
+  destination:
+    namespace: yjlee
+    server: https://kubernetes.default.svc
+  source:
+    path: k8s
+    repoURL: https://github.com/hey880/springhello.git
+    targetRevision: main
+  sources: []
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      enabled: true
