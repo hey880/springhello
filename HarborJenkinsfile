@@ -1,0 +1,120 @@
+pipeline {
+    agent {
+        kubernetes {
+            namespace 'yjlee'
+            yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  serviceAccountName: jenkins-agent
+  containers:
+    - name: maven
+      image: maven:3.9-eclipse-temurin-21
+      command: ['cat']
+      tty: true
+    - name: podman
+      image: quay.io/podman/stable:latest
+      command: ["sleep", "infinity"]
+      securityContext:
+        privileged: true
+      volumeMounts:
+      - name: podman-storage-vol
+        mountPath: /var/lib/containers
+      tty: true
+    - name: kubectl
+      image: alpine/k8s:1.29.15
+      command: ['cat']
+      tty: true
+  volumes:
+    - name: podman-storage-vol
+      emptyDir: {}
+"""
+        }
+    }
+
+    triggers {
+        pollSCM('H/3 * * * *')
+    }
+
+    environment {
+        IMAGE_NAME = "spring-server"
+        IMAGE_TAG  = "${env.BUILD_NUMBER}"
+        HARBOR_REGISTRY = "harbor-product.strato.co.kr:8443/yjlee"
+        HARBOR_CRED_ID = "harbor-robot-account-for-yjlee"
+        GITHUB_CRED_ID = "yjlee-github-token"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/hey880/springhello.git'
+            }
+        }
+
+        stage('Build Spring Boot with Nexus') {
+            steps {
+                container('maven') {
+                   // Jenkins Credentials에 등록된 Nexus 계정 ID 사용
+                   withCredentials([usernamePassword(
+                        credentialsId: 'nexus-login-credentials',
+                        usernameVariable: 'NEXUS_USER',
+                        passwordVariable: 'NEXUS_PASS')]
+                   ) {
+                       sh 'mvn clean package -s settings.xml -DskipTests'
+                   }
+            }
+        }
+
+        stage('podman Build & Push to Harbor') {
+            steps {
+                container('podman') {
+                    withCredentials([usernamePassword(
+                        credentialsId: env.HARBOR_CRED_ID,
+                        usernameVariable: 'HARBOR_USER', // Jenkins가 CredentialStore에서 값을 꺼내와 새로 만들어줄 환경변수의 이름
+                        passwordVariable: 'HARBOR_PASS')]
+                    ) {
+                        sh """
+                            podman build -t ${HARBOR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} .
+                            echo "\$HARBOR_PASS" | podman login ${HARBOR_REGISTRY} -u "\$HARBOR_USER" --password-stdin
+                            podman push ${HARBOR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Edit manifest files & Git Push') {
+            steps {
+                container('kubectl') {
+                    withCredentials([usernamePassword(
+                        credentialsId: env.GITHUB_CRED_ID,
+                        usernameVariable: 'GIT_USER',
+                        passwordVariable: 'GIT_TOKEN'
+                    )]) {
+                        sh """
+                            # 매니페스트 파일의 image태그를 빌드 넘버로 업데이트
+                            sed 's|__IMAGE_TAG__|${IMAGE_TAG}|g' k8s/deployment.yaml > k8s/deployment-rendered.yaml
+                            git checkout main
+                            git fetch origin main
+                            git pull --rebase origin main
+                            git config user.name "hey880"
+                            git config user.email "hey880@naver.com"
+                            # 변경된 매니페스트를 git에 업로드. ArgoCD는 이 변화를 감지해 자동 배포를 진행함
+                            git add k8s/deployment-rendered.yaml
+                            # [skip ci]를 붙여야 Jenkins가 이 push를 보고, 이 기능은 빌드 무한 반복하는 걸 막을 수 있음
+                            git commit -m "Update deployment manifest image version: ${IMAGE_TAG} [skip ci]"
+                            git push https://\$GIT_USER:\$GIT_TOKEN@github.com/hey880/springhello.git main
+                        """
+                    }
+                }
+            }
+        }
+        // 이제 deploy는 kubectl이 하는 게 아니라 ArgoCD가 한다.
+    }
+
+    post {
+        failure {
+            echo '파이프라인 실패!'
+        }
+    }
+}
