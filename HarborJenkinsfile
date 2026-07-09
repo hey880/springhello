@@ -96,26 +96,22 @@ pipeline {
                         passwordVariable: 'GIT_TOKEN'
                     )]) {
                         sh """
-                            # 1. 홈 디렉토리나 안전한 임시 공간으로 이동
+                            # 1. 임시 공간으로 이동 후 새로 Clone
                             cd /tmp
-
-                            # 2. 기존에 남은 폴더가 있다면 삭제 (멱등성 확보)
                             rm -rf springhello
-
-                            # 3. 토큰을 주입하여 레포지토리를 새로 Clone
                             git clone https://\$GIT_USER:\$GIT_TOKEN@github.com/hey880/springhello.git
                             cd springhello
 
-                            # 4. Git 유저 설정 적용 (이제 확실한 Git 디렉토리 내부임)
+                            # 2. Git 유저 설정
                             git config user.name "hey880"
                             git config user.email "hey880@naver.com"
 
-                            # 5. 매니페스트 파일 이미지 태그 업데이트 (여기서 치환 진행)
-                            sed 's|__IMAGE_TAG__|${IMAGE_TAG}|g' k8s/deployment.yaml > k8s/deployment-rendered.yaml
+                            # 3. # 원본 템플릿(.tmpl)을 읽어서 -> 실제 배포용 파일(.yaml)을 생성
+                            sed "s|__IMAGE_TAG__|${env.IMAGE_TAG}|g" k8s/deployment.tmpl > k8s/deployment.yaml
 
-                            # 6. 변경 사항 반영 및 Push
+                            # 4. 변경 사항 반영 및 Push
                             git add k8s/deployment-rendered.yaml
-                            git commit -m "Update deployment manifest image version: ${IMAGE_TAG} [skip ci]"
+                            git commit -m "Update deployment manifest image version: ${env.IMAGE_TAG} [skip ci]"
                             git push origin main
                         """
                     }
