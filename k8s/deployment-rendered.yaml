@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: spring-server       # 컨테이너 이름 (파드 내에서 구분용)
-          image: harbor-product.strato.co.kr:8443/yjlee/spring-server:36   # 실행할 이미지 (Jenkins가 태그 치환)
+          image: harbor-product.strato.co.kr:8443/yjlee/spring-server:37   # 실행할 이미지 (Jenkins가 태그 치환)
           ports:
             - containerPort: 8080   # 컨테이너 내부에서 앱이 실제로 열어놓은 포트
           imagePullPolicy: IfNotPresent  # 로컬(노드)에 이미지 있으면 재사용, 없으면 pull
