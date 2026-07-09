@@ -3,32 +3,32 @@ pipeline {
         kubernetes {
             namespace 'yjlee'
             yaml """
-apiVersion: v1
-kind: Pod
-spec:
-  serviceAccountName: jenkins-agent
-  containers:
-    - name: maven
-      image: maven:3.9-eclipse-temurin-21
-      command: ['cat']
-      tty: true
-    - name: podman
-      image: quay.io/podman/stable:latest
-      command: ["sleep", "infinity"]
-      securityContext:
-        privileged: true
-      volumeMounts:
-      - name: podman-storage-vol
-        mountPath: /var/lib/containers
-      tty: true
-    - name: kubectl
-      image: alpine/k8s:1.29.15
-      command: ['cat']
-      tty: true
-  volumes:
-    - name: podman-storage-vol
-      emptyDir: {}
-"""
+                apiVersion: v1
+                kind: Pod
+                spec:
+                  serviceAccountName: jenkins-agent
+                  containers:
+                    - name: maven
+                      image: maven:3.9-eclipse-temurin-21
+                      command: ['cat']
+                      tty: true
+                    - name: podman
+                      image: quay.io/podman/stable:latest
+                      command: ["sleep", "infinity"]
+                      securityContext:
+                        privileged: true
+                      volumeMounts:
+                      - name: podman-storage-vol
+                        mountPath: /var/lib/containers
+                      tty: true
+                    - name: kubectl
+                      image: alpine/k8s:1.29.15
+                      command: ['cat']
+                      tty: true
+                  volumes:
+                    - name: podman-storage-vol
+                      emptyDir: {}
+            """
         }
     }
 
@@ -62,6 +62,7 @@ spec:
                    ) {
                        sh 'mvn clean package -s settings.xml -DskipTests'
                    }
+                }
             }
         }
 
