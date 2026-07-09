@@ -55,6 +55,7 @@ pipeline {
 
         stage('Build Spring Boot with Nexus') {
             steps {
+                // Nexus는 패키지만 줄 뿐이고 mvn 명령어를 쓰기 위해서는 maven 컨테이너가 필요하다.
                 container('maven') {
                    // Jenkins Credentials에 등록된 Nexus 계정 ID 사용
                    withCredentials([usernamePassword(
