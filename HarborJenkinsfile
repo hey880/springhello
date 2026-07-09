@@ -110,7 +110,7 @@ pipeline {
                             sed "s|__IMAGE_TAG__|${env.IMAGE_TAG}|g" k8s/deployment.tmpl > k8s/deployment.yaml
 
                             # 4. 변경 사항 반영 및 Push
-                            git add k8s/deployment-rendered.yaml
+                            git add k8s/deployment.yaml
                             git commit -m "Update deployment manifest image version: ${env.IMAGE_TAG} [skip ci]"
                             git push origin main
                         """
