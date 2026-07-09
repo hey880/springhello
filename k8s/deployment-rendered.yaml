@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yeji-deployment-practice   # Deployment 오브젝트 자체의 이름
+  labels:
+    app: spring                     # Deployment 오브젝트에 붙이는 태그 (검색/구분용)
+spec:
+  replicas: 3                       # 동일한 Pod을 3개 복제해서 실행 (가용성/부하분산)
+  selector:
+    matchLabels:
+      app: spring                   # "이 label을 가진 Pod들을 내가 관리한다"는 선언
+  template:                         # 아래는 실제로 생성될 Pod의 설계도
+    metadata:
+      labels:
+        app: spring                 # replica로 생성되는 여러개 Pod들에 실제로 붙는 label
+        # → 위 selector.matchLabels와 반드시 일치해야 함
+    spec:
+      containers:
+        - name: spring-server       # 컨테이너 이름 (파드 내에서 구분용)
+          image: harbor-product.strato.co.kr:8443/yjlee/spring-server:30   # 실행할 이미지 (Jenkins가 태그 치환)
+          ports:
+            - containerPort: 8080   # 컨테이너 내부에서 앱이 실제로 열어놓은 포트
+          imagePullPolicy: IfNotPresent  # 로컬(노드)에 이미지 있으면 재사용, 없으면 pull
