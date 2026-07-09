@@ -115,11 +115,11 @@ pipeline {
                             git add k8s/deployment-rendered.yaml
                             git commit -m "Update deployment manifest image version: ${IMAGE_TAG} [skip ci]"
                             git push https://\$GIT_USER:\$GIT_TOKEN@github.com/hey880/springhello.git main
+                        """
                     }
                 }
             }
         }
-        // 이제 deploy는 kubectl이 하는 게 아니라 ArgoCD가 한다.
     }
 
     post {
