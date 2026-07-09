@@ -32,14 +32,6 @@ pipeline {
         }
     }
 
-    options {
-            // 커밋 메시지에 [skip ci]가 포함되어 있으면 빌드를 수행하지 않음 (대소문자 구분 없음)
-            // "App 소스 코드 저장소"와 "ArgoCD 배포 Manifest 저장소"를 분리하지 않고 하나의 Git 레포지토리에서 관리
-            // manifest 이미지 태그를 변경하면 Git에 push 되고, Jenkins SCM은 이 커밋을 보고 pipeline 빌드를 시작함
-            // 무한 배포 loop에 빠지기 때문에 이를 방지하기 위해 [skip ci] 라는 문구가 포함된 커밋은 무시하도록 설정.
-            changelogExpression('(?i)^.*?\\[skip ci\\].*?$')
-    }
-
     triggers {
         pollSCM('H/3 * * * *')
     }
