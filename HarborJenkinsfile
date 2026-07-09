@@ -39,6 +39,8 @@ pipeline {
     environment {
         IMAGE_NAME = "spring-server"
         IMAGE_TAG  = "${env.BUILD_NUMBER}"
+        HARBOR_SERVER   = "harbor-product.strato.co.kr:8443"
+        HARBOR_PROJECT  = "yjlee"
         HARBOR_REGISTRY = "harbor-product.strato.co.kr:8443/yjlee"
         HARBOR_CRED_ID = "harbor-robot-account-for-yjlee"
         GITHUB_CRED_ID = "yjlee-github-token"
@@ -77,7 +79,7 @@ pipeline {
                         sh """
                             podman build -t ${HARBOR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} .
                             # --tls-verify=false 옵션 추가 (로그인, push 모두에 추가)
-                            echo "\$HARBOR_PASS" | podman login ${HARBOR_REGISTRY} -u "\$HARBOR_USER" --password-stdin --tls-verify=false
+                            echo "\$HARBOR_PASS" | podman login ${HARBOR_SERVER} -u "\$HARBOR_USER" --password-stdin --tls-verify=false
                             podman push ${HARBOR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} --tls-verify=false
                         """
                     }
