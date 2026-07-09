@@ -76,8 +76,9 @@ pipeline {
                     ) {
                         sh """
                             podman build -t ${HARBOR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} .
-                            echo "\$HARBOR_PASS" | podman login ${HARBOR_REGISTRY} -u "\$HARBOR_USER" --password-stdin
-                            podman push ${HARBOR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                            # --tls-verify=false 옵션 추가 (로그인, push 모두에 추가)
+                            echo "\$HARBOR_PASS" | podman login ${HARBOR_REGISTRY} -u "\$HARBOR_USER" --password-stdin --tls-verify=false
+                            podman push ${HARBOR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} --tls-verify=false
                         """
                     }
                 }
