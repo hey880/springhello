@@ -98,11 +98,11 @@ pipeline {
                         sh """
                             # 매니페스트 파일의 image태그를 빌드 넘버로 업데이트
                             sed 's|__IMAGE_TAG__|${IMAGE_TAG}|g' k8s/deployment.yaml > k8s/deployment-rendered.yaml
+                            git config user.email "hey880@naver.com"
+                            git config user.name "hey880"
                             git checkout main
                             git fetch origin main
                             git pull --rebase origin main
-                            git config user.name "hey880"
-                            git config user.email "hey880@naver.com"
                             # 변경된 매니페스트를 git에 업로드. ArgoCD는 이 변화를 감지해 자동 배포를 진행함
                             git add k8s/deployment-rendered.yaml
                             # [skip ci]를 붙여야 Jenkins가 이 push를 보고, 이 기능은 빌드 무한 반복하는 걸 막을 수 있음
